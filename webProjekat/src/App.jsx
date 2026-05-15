@@ -1,122 +1,60 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import 'bootstrap/dist/css/bootstrap.min.css';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { lazy, Suspense, useEffect } from 'react';
+import { Spinner } from 'react-bootstrap';
+import { initSession } from './auth.js';
+import PrivateRoute from './components/PrivateRoute.jsx';
+import AdminRoute from './components/AdminRoute.jsx';
+import CmsLayout from './components/CmsLayout.jsx';
+
+const CmsLoginPage        = lazy(() => import('./pages/cms/CmsLoginPage.jsx'));
+const CmsCategoriesPage   = lazy(() => import('./pages/cms/CmsCategoriesPage.jsx'));
+const CmsCategoryFormPage = lazy(() => import('./pages/cms/CmsCategoryFormPage.jsx'));
+const CmsArticlesPage     = lazy(() => import('./pages/cms/CmsArticlesPage.jsx'));
+const CmsArticleFormPage  = lazy(() => import('./pages/cms/CmsArticleFormPage.jsx'));
+const CmsSearchPage       = lazy(() => import('./pages/cms/CmsSearchPage.jsx'));
+const CmsUsersPage        = lazy(() => import('./pages/cms/CmsUsersPage.jsx'));
+const CmsUserFormPage     = lazy(() => import('./pages/cms/CmsUserFormPage.jsx'));
+// Chapter 6 - javna platforma:
+// const PublicHomePage    = lazy(() => import('./pages/public/PublicHomePage.jsx'));
+// const PublicArticlePage = lazy(() => import('./pages/public/PublicArticlePage.jsx'));
+
+const fallback = (
+    <div className="d-flex justify-content-center align-items-center vh-100">
+        <Spinner animation="border" />
+    </div>
+);
 
 function App() {
-  const [count, setCount] = useState(0)
+    useEffect(() => { initSession(); }, []);
 
-  return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    return (
+        <Router>
+            <Suspense fallback={fallback}>
+                <Routes>
+                    <Route path="/cms/login" element={<CmsLoginPage />} />
 
-      <div className="ticks"></div>
+                    <Route path="/cms" element={<PrivateRoute element={<CmsLayout />} />}>
+                        <Route path="categories"           element={<CmsCategoriesPage />} />
+                        <Route path="categories/new"       element={<CmsCategoryFormPage />} />
+                        <Route path="categories/:id/edit"  element={<CmsCategoryFormPage />} />
+                        <Route path="articles"             element={<CmsArticlesPage />} />
+                        <Route path="articles/new"         element={<CmsArticleFormPage />} />
+                        <Route path="articles/:id/edit"    element={<CmsArticleFormPage />} />
+                        <Route path="search"               element={<CmsSearchPage />} />
+                        <Route path="users"                element={<AdminRoute element={<CmsUsersPage />} />} />
+                        <Route path="users/new"            element={<AdminRoute element={<CmsUserFormPage />} />} />
+                        <Route path="users/:email/edit"    element={<AdminRoute element={<CmsUserFormPage />} />} />
+                    </Route>
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+                    {/* Javna platforma (Chapter 6+) */}
+                    {/* <Route path="/" element={<PublicHomePage />} /> */}
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+                    <Route path="*" element={<Navigate to="/cms/login" />} />
+                </Routes>
+            </Suspense>
+        </Router>
+    );
 }
 
-export default App
+export default App;
