@@ -2,22 +2,37 @@ package rs.raf.rafnovosti.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+
+@Getter
+@Setter
+@NoArgsConstructor
 public class User {
 
+    @NotNull(message = "Email je obavezan")
+    @NotEmpty(message = "Email ne sme biti prazan")
     private String email;
+
+    @NotNull(message = "Ime je obavezno")
+    @NotEmpty(message = "Ime ne sme biti prazno")
     private String firstName;
+
+    @NotNull(message = "Prezime je obavezno")
+    @NotEmpty(message = "Prezime ne sme biti prazno")
     private String lastName;
-    private String type;    // "ADMIN" ili "CONTENT_CREATOR"
-    private String status;  // "ACTIVE" ili "INACTIVE"
 
-    @JsonIgnore
+    @NotNull(message = "Tip je obavezan")
+    @NotEmpty(message = "Tip ne sme biti prazan")
+    private String type;
+
+    private String status;
     private String hashedPassword;
-
-    // Polje za kreiranje korisnika — prima plain text, ne čuva se u DB
     private String password;
-
-    public User() {}
 
     public User(String email, String firstName, String lastName, String type, String status, String hashedPassword) {
         this.email = email;
@@ -28,55 +43,9 @@ public class User {
         this.hashedPassword = hashedPassword;
     }
 
-    public String getEmail() {
-        return email;
-    }
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getFirstName() {
-        return firstName;
-    }
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
-    }
-
-    public String getLastName() {
-        return lastName;
-    }
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
-    }
-
-    public String getType() {
-        return type;
-    }
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
     @JsonIgnore
-    public String getHashedPassword() {
-        return hashedPassword;
-    }
+    public String getHashedPassword() { return hashedPassword; }
 
     @JsonProperty
-    public void setHashedPassword(String hashedPassword) {
-        this.hashedPassword = hashedPassword;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-    public void setPassword(String password) {
-        this.password = password;
-    }
+    public void setHashedPassword(String hashedPassword) { this.hashedPassword = hashedPassword; }
 }

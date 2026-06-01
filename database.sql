@@ -21,24 +21,10 @@ CREATE TABLE articles (
     title        VARCHAR(255) NOT NULL,
     content      TEXT NOT NULL,
     published_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    visit_count  INT DEFAULT 0,
     author_email VARCHAR(255) NOT NULL,
     category_id  INT NOT NULL,
     FOREIGN KEY (author_email) REFERENCES users(email),
     FOREIGN KEY (category_id) REFERENCES categories(id)
-);
-
-CREATE TABLE tags (
-    id   INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(255) UNIQUE NOT NULL
-);
-
-CREATE TABLE article_tags (
-    article_id INT NOT NULL,
-    tag_id     INT NOT NULL,
-    PRIMARY KEY (article_id, tag_id),
-    FOREIGN KEY (article_id) REFERENCES articles(id),
-    FOREIGN KEY (tag_id) REFERENCES tags(id)
 );
 
 CREATE TABLE comments (
@@ -47,29 +33,6 @@ CREATE TABLE comments (
     content     TEXT NOT NULL,
     created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     article_id  INT NOT NULL,
-    FOREIGN KEY (article_id) REFERENCES articles(id)
-);
-
-CREATE TABLE article_reactions (
-    article_id INT NOT NULL,
-    session_id VARCHAR(255) NOT NULL,
-    type       ENUM('LIKE', 'DISLIKE') NOT NULL,
-    PRIMARY KEY (article_id, session_id),
-    FOREIGN KEY (article_id) REFERENCES articles(id)
-);
-
-CREATE TABLE comment_reactions (
-    comment_id INT NOT NULL,
-    session_id VARCHAR(255) NOT NULL,
-    type       ENUM('LIKE', 'DISLIKE') NOT NULL,
-    PRIMARY KEY (comment_id, session_id),
-    FOREIGN KEY (comment_id) REFERENCES comments(id)
-);
-
-CREATE TABLE article_visits (
-    article_id INT NOT NULL,
-    session_id VARCHAR(255) NOT NULL,
-    PRIMARY KEY (article_id, session_id),
     FOREIGN KEY (article_id) REFERENCES articles(id)
 );
 

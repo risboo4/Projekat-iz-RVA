@@ -1,10 +1,3 @@
-// Generise session_id za anonimne korisnike (posete, reakcije)
-export const initSession = () => {
-    if (!localStorage.getItem('session_id')) {
-        localStorage.setItem('session_id', crypto.randomUUID());
-    }
-};
-
 const getPayload = () => {
     const jwt = localStorage.getItem('jwt');
     if (!jwt) return null;

@@ -5,21 +5,17 @@ import rs.raf.rafnovosti.repositories.MySqlAbstractRepository;
 
 import java.sql.*;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class MySqlArticleRepository extends MySqlAbstractRepository implements ArticleRepository {
 
     private static final String BASE_SELECT =
-        "SELECT a.id, a.title, a.content, a.published_at, a.visit_count, a.author_email, a.category_id, " +
+        "SELECT a.id, a.title, a.content, a.published_at, a.author_email, a.category_id, " +
         "u.first_name AS author_first_name, u.last_name AS author_last_name, " +
-        "c.name AS category_name, " +
-        "GROUP_CONCAT(t.name ORDER BY t.name SEPARATOR ',') AS tag_names " +
+        "c.name AS category_name " +
         "FROM articles a " +
         "JOIN users u ON a.author_email = u.email " +
-        "JOIN categories c ON a.category_id = c.id " +
-        "LEFT JOIN article_tags art ON a.id = art.article_id " +
-        "LEFT JOIN tags t ON art.tag_id = t.id ";
+        "JOIN categories c ON a.category_id = c.id ";
 
     @Override
     public List<Article> findAll(int page, int pageSize) {
@@ -30,7 +26,7 @@ public class MySqlArticleRepository extends MySqlAbstractRepository implements A
         try {
             connection = newConnection();
             ps = connection.prepareStatement(
-                BASE_SELECT + "GROUP BY a.id ORDER BY a.published_at DESC LIMIT ? OFFSET ?"
+                BASE_SELECT + "ORDER BY a.published_at DESC LIMIT ? OFFSET ?"
             );
             ps.setInt(1, pageSize);
             ps.setInt(2, (page - 1) * pageSize);
@@ -53,7 +49,7 @@ public class MySqlArticleRepository extends MySqlAbstractRepository implements A
         try {
             connection = newConnection();
             ps = connection.prepareStatement(
-                BASE_SELECT + "WHERE a.category_id = ? GROUP BY a.id ORDER BY a.published_at DESC LIMIT ? OFFSET ?"
+                BASE_SELECT + "WHERE a.category_id = ? ORDER BY a.published_at DESC LIMIT ? OFFSET ?"
             );
             ps.setInt(1, categoryId);
             ps.setInt(2, pageSize);
@@ -78,7 +74,7 @@ public class MySqlArticleRepository extends MySqlAbstractRepository implements A
             connection = newConnection();
             String like = "%" + query + "%";
             ps = connection.prepareStatement(
-                BASE_SELECT + "WHERE a.title LIKE ? OR a.content LIKE ? GROUP BY a.id ORDER BY a.published_at DESC LIMIT ? OFFSET ?"
+                BASE_SELECT + "WHERE a.title LIKE ? OR a.content LIKE ? ORDER BY a.published_at DESC LIMIT ? OFFSET ?"
             );
             ps.setString(1, like);
             ps.setString(2, like);
@@ -96,7 +92,20 @@ public class MySqlArticleRepository extends MySqlAbstractRepository implements A
 
     @Override
     public int countAll() {
-        return countQuery("SELECT COUNT(*) FROM articles", null);
+        Connection connection = null;
+        Statement st = null;
+        ResultSet rs = null;
+        try {
+            connection = newConnection();
+            st = connection.createStatement();
+            rs = st.executeQuery("SELECT COUNT(*) FROM articles");
+            if (rs.next()) return rs.getInt(1);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            closeResultSet(rs); closeStatement(st); closeConnection(connection);
+        }
+        return 0;
     }
 
     @Override
@@ -146,7 +155,7 @@ public class MySqlArticleRepository extends MySqlAbstractRepository implements A
         ResultSet rs = null;
         try {
             connection = newConnection();
-            ps = connection.prepareStatement(BASE_SELECT + "WHERE a.id = ? GROUP BY a.id");
+            ps = connection.prepareStatement(BASE_SELECT + "WHERE a.id = ?");
             ps.setInt(1, id);
             rs = ps.executeQuery();
             if (rs.next()) return mapRow(rs);
@@ -233,13 +242,14 @@ public class MySqlArticleRepository extends MySqlAbstractRepository implements A
             connection = newConnection();
             connection.setAutoCommit(false);
 
-            // Kaskadno brisanje u pravom redosledu
-            exec(connection, "DELETE FROM comment_reactions WHERE comment_id IN (SELECT id FROM comments WHERE article_id = ?)", id);
-            exec(connection, "DELETE FROM comments WHERE article_id = ?", id);
-            exec(connection, "DELETE FROM article_reactions WHERE article_id = ?", id);
-            exec(connection, "DELETE FROM article_visits WHERE article_id = ?", id);
-            exec(connection, "DELETE FROM article_tags WHERE article_id = ?", id);
-            exec(connection, "DELETE FROM articles WHERE id = ?", id);
+            try (PreparedStatement ps = connection.prepareStatement("DELETE FROM comments WHERE article_id = ?")) {
+                ps.setInt(1, id);
+                ps.executeUpdate();
+            }
+            try (PreparedStatement ps = connection.prepareStatement("DELETE FROM articles WHERE id = ?")) {
+                ps.setInt(1, id);
+                ps.executeUpdate();
+            }
 
             connection.commit();
         } catch (SQLException e) {
@@ -250,28 +260,23 @@ public class MySqlArticleRepository extends MySqlAbstractRepository implements A
         }
     }
 
-    private void exec(Connection conn, String sql, int param) throws SQLException {
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, param);
-            ps.executeUpdate();
-        }
-    }
-
-    private int countQuery(String sql, Object param) {
+    @Override
+    public List<Article> findLatest() {
+        List<Article> list = new ArrayList<>();
         Connection connection = null;
-        Statement st = null;
+        PreparedStatement ps = null;
         ResultSet rs = null;
         try {
             connection = newConnection();
-            st = connection.createStatement();
-            rs = st.executeQuery(sql);
-            if (rs.next()) return rs.getInt(1);
+            ps = connection.prepareStatement(BASE_SELECT + "ORDER BY a.published_at DESC LIMIT 10");
+            rs = ps.executeQuery();
+            while (rs.next()) list.add(mapRow(rs));
         } catch (SQLException e) {
             e.printStackTrace();
         } finally {
-            closeResultSet(rs); closeStatement(st); closeConnection(connection);
+            closeResultSet(rs); closeStatement(ps); closeConnection(connection);
         }
-        return 0;
+        return list;
     }
 
     private Article mapRow(ResultSet rs) throws SQLException {
@@ -280,17 +285,11 @@ public class MySqlArticleRepository extends MySqlAbstractRepository implements A
         a.setTitle(rs.getString("title"));
         a.setContent(rs.getString("content"));
         a.setPublishedAt(rs.getString("published_at"));
-        a.setVisitCount(rs.getInt("visit_count"));
         a.setAuthorEmail(rs.getString("author_email"));
         a.setCategoryId(rs.getInt("category_id"));
         a.setAuthorFirstName(rs.getString("author_first_name"));
         a.setAuthorLastName(rs.getString("author_last_name"));
         a.setCategoryName(rs.getString("category_name"));
-
-        String tagNames = rs.getString("tag_names");
-        if (tagNames != null && !tagNames.isEmpty()) {
-            a.setTags(Arrays.asList(tagNames.split(",")));
-        }
         return a;
     }
 }

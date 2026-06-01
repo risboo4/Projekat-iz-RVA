@@ -1,7 +1,6 @@
 package rs.raf.rafnovosti.repositories;
 
 import java.sql.*;
-import java.util.Optional;
 
 public abstract class MySqlAbstractRepository {
 
@@ -21,34 +20,21 @@ public abstract class MySqlAbstractRepository {
         );
     }
 
-    protected String getHost() {
-        return "localhost";
-    }
-    protected int getPort() {
-        return 3306;
-    }
-    protected String getDatabaseName() {
-        return "raf_novosti";
-    }
-    protected String getUsername() {
-        return "root";
-    }
-    protected String getPassword() {
-        return "root";
+    protected String getHost() { return "localhost"; }
+    protected int getPort() { return 3306; }
+    protected String getDatabaseName() { return "raf_novosti"; }
+    protected String getUsername() { return "root"; }
+    protected String getPassword() { return "root"; }
+
+    protected void closeStatement(Statement s) {
+        if (s != null) try { s.close(); } catch (SQLException e) { e.printStackTrace(); }
     }
 
-    protected void closeStatement(Statement statement) {
-        try { Optional.ofNullable(statement).ifPresent(s -> { try { s.close(); } catch (SQLException e) { e.printStackTrace(); } }); }
-        catch (Exception e) { e.printStackTrace(); }
+    protected void closeResultSet(ResultSet rs) {
+        if (rs != null) try { rs.close(); } catch (SQLException e) { e.printStackTrace(); }
     }
 
-    protected void closeResultSet(ResultSet resultSet) {
-        try { Optional.ofNullable(resultSet).ifPresent(rs -> { try { rs.close(); } catch (SQLException e) { e.printStackTrace(); } }); }
-        catch (Exception e) { e.printStackTrace(); }
-    }
-
-    protected void closeConnection(Connection connection) {
-        try { Optional.ofNullable(connection).ifPresent(c -> { try { c.close(); } catch (SQLException e) { e.printStackTrace(); } }); }
-        catch (Exception e) { e.printStackTrace(); }
+    protected void closeConnection(Connection c) {
+        if (c != null) try { c.close(); } catch (SQLException e) { e.printStackTrace(); }
     }
 }

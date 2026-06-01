@@ -7,12 +7,13 @@ import rs.raf.rafnovosti.repositories.article.ArticleRepository;
 import rs.raf.rafnovosti.repositories.article.MySqlArticleRepository;
 import rs.raf.rafnovosti.repositories.category.CategoryRepository;
 import rs.raf.rafnovosti.repositories.category.MySqlCategoryRepository;
-import rs.raf.rafnovosti.repositories.tag.MySqlTagRepository;
-import rs.raf.rafnovosti.repositories.tag.TagRepository;
+import rs.raf.rafnovosti.repositories.comment.CommentRepository;
+import rs.raf.rafnovosti.repositories.comment.MySqlCommentRepository;
 import rs.raf.rafnovosti.repositories.user.MySqlUserRepository;
 import rs.raf.rafnovosti.repositories.user.UserRepository;
 import rs.raf.rafnovosti.services.ArticleService;
 import rs.raf.rafnovosti.services.CategoryService;
+import rs.raf.rafnovosti.services.CommentService;
 import rs.raf.rafnovosti.services.UserService;
 
 import javax.inject.Singleton;
@@ -30,10 +31,11 @@ public class RafNovostiApplication extends ResourceConfig {
                 bind(MySqlUserRepository.class).to(UserRepository.class).in(Singleton.class);
                 bind(MySqlCategoryRepository.class).to(CategoryRepository.class).in(Singleton.class);
                 bind(MySqlArticleRepository.class).to(ArticleRepository.class).in(Singleton.class);
-                bind(MySqlTagRepository.class).to(TagRepository.class).in(Singleton.class);
+                bind(MySqlCommentRepository.class).to(CommentRepository.class).in(Singleton.class);
                 bindAsContract(UserService.class);
                 bindAsContract(CategoryService.class);
                 bindAsContract(ArticleService.class);
+                bindAsContract(CommentService.class);
             }
         };
         register(binder);

@@ -75,6 +75,10 @@ public class UserService {
         return jwt.getSubject();
     }
 
+    public User findByEmail(String email) {
+        return userRepository.findByEmail(email);
+    }
+
     public List<User> findAll(int page, int pageSize) {
         return userRepository.findAll(page, pageSize);
     }
@@ -91,8 +95,7 @@ public class UserService {
                     .build()
             );
         }
-        String plain = user.getPassword() != null ? user.getPassword() : user.getHashedPassword();
-        user.setHashedPassword(DigestUtils.sha256Hex(plain));
+        user.setHashedPassword(DigestUtils.sha256Hex(user.getPassword()));
         return userRepository.insert(user);
     }
 

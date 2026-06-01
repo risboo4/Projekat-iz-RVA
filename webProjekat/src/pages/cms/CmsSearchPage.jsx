@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { Table, Alert, Spinner, Badge } from 'react-bootstrap';
+import { Table, Alert, Spinner } from 'react-bootstrap';
 import _axios from '../../axiosInstance.js';
 import PaginationControls from '../../components/PaginationControls.jsx';
 
@@ -16,7 +16,7 @@ const CmsSearchPage = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
-    const fetchResults = async (p = 1) => {
+    const fetchResults = async (p) => {
         if (!query) return;
         setLoading(true);
         setError('');
@@ -31,8 +31,8 @@ const CmsSearchPage = () => {
         }
     };
 
-    useEffect(() => { setPage(1); fetchResults(1); }, [query]);
-    useEffect(() => { fetchResults(page); }, [page]);
+    useEffect(() => { setPage(1); }, [query]);
+    useEffect(() => { fetchResults(page); }, [query, page]);
 
     const formatDate = (dateStr) => dateStr ? dateStr.substring(0, 10) : '';
 
@@ -55,23 +55,17 @@ const CmsSearchPage = () => {
                                 <th>Naslov</th>
                                 <th>Autor</th>
                                 <th>Kategorija</th>
-                                <th>Tagovi</th>
                                 <th>Datum objave</th>
                             </tr>
                         </thead>
                         <tbody>
                             {articles.length === 0 ? (
-                                <tr><td colSpan={5} className="text-center text-muted">Nema rezultata</td></tr>
+                                <tr><td colSpan={4} className="text-center text-muted">Nema rezultata</td></tr>
                             ) : articles.map(article => (
                                 <tr key={article.id}>
                                     <td><Link to={`/cms/articles/${article.id}/edit`}>{article.title}</Link></td>
                                     <td>{article.authorFirstName} {article.authorLastName}</td>
                                     <td>{article.categoryName}</td>
-                                    <td>
-                                        {article.tags?.map(tag => (
-                                            <Badge key={tag} bg="secondary" className="me-1">{tag}</Badge>
-                                        ))}
-                                    </td>
                                     <td>{formatDate(article.publishedAt)}</td>
                                 </tr>
                             ))}

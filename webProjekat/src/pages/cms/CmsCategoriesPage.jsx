@@ -71,7 +71,6 @@ const CmsCategoriesPage = () => {
                             ) : categories.map(cat => (
                                 <tr key={cat.id}>
                                     <td>
-                                        {/* U Chapter 4 ovaj link vodi na vesti filtrirane po kategoriji */}
                                         <Link to={`/cms/articles?categoryId=${cat.id}`}>{cat.name}</Link>
                                     </td>
                                     <td>{cat.description}</td>

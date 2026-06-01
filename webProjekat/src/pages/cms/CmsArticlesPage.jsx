@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { Table, Button, Alert, Spinner, Badge } from 'react-bootstrap';
+import { Table, Button, Alert, Spinner } from 'react-bootstrap';
 import _axios from '../../axiosInstance.js';
 import PaginationControls from '../../components/PaginationControls.jsx';
 
@@ -17,7 +17,7 @@ const CmsArticlesPage = () => {
     const [error, setError] = useState('');
     const [successMsg, setSuccessMsg] = useState('');
 
-    const fetchArticles = async (p = page) => {
+    const fetchArticles = async (p) => {
         setLoading(true);
         setError('');
         try {
@@ -34,8 +34,8 @@ const CmsArticlesPage = () => {
         }
     };
 
-    useEffect(() => { setPage(1); fetchArticles(1); }, [categoryId]);
-    useEffect(() => { fetchArticles(page); }, [page]);
+    useEffect(() => { setPage(1); }, [categoryId]);
+    useEffect(() => { fetchArticles(page); }, [categoryId, page]);
 
     const handleDelete = async (id, title) => {
         if (!window.confirm(`Obrisati vest "${title}"?`)) return;
@@ -72,27 +72,20 @@ const CmsArticlesPage = () => {
                                 <th>Naslov</th>
                                 <th>Autor</th>
                                 <th>Kategorija</th>
-                                <th>Tagovi</th>
                                 <th>Datum objave</th>
                                 <th style={{ width: '160px' }}>Akcije</th>
                             </tr>
                         </thead>
                         <tbody>
                             {articles.length === 0 ? (
-                                <tr><td colSpan={6} className="text-center text-muted">Nema vesti</td></tr>
+                                <tr><td colSpan={5} className="text-center text-muted">Nema vesti</td></tr>
                             ) : articles.map(article => (
                                 <tr key={article.id}>
                                     <td>
-                                        {/* U Chapter 6 ovaj link vodi na javnu stranicu vesti */}
                                         <Link to={`/article/${article.id}`}>{article.title}</Link>
                                     </td>
                                     <td>{article.authorFirstName} {article.authorLastName}</td>
                                     <td>{article.categoryName}</td>
-                                    <td>
-                                        {article.tags?.map(tag => (
-                                            <Badge key={tag} bg="secondary" className="me-1">{tag}</Badge>
-                                        ))}
-                                    </td>
                                     <td>{formatDate(article.publishedAt)}</td>
                                     <td>
                                         <Button

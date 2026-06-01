@@ -21,15 +21,13 @@ const CmsUserFormPage = () => {
 
     useEffect(() => {
         if (!isEdit) return;
-        _axios.get(`/api/users?page=1&pageSize=1000`)
+        _axios.get(`/api/users/${encodeURIComponent(email)}`)
             .then(res => {
-                const user = res.data.data.find(u => u.email === email);
-                if (user) {
-                    setFirstName(user.firstName);
-                    setLastName(user.lastName);
-                    setUserEmail(user.email);
-                    setType(user.type);
-                }
+                const user = res.data;
+                setFirstName(user.firstName);
+                setLastName(user.lastName);
+                setUserEmail(user.email);
+                setType(user.type);
             })
             .catch(() => setError('Greška pri učitavanju korisnika'))
             .finally(() => setLoading(false));

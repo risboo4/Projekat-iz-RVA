@@ -1,0 +1,6 @@
+rs/raf/rafnovosti/requests/ReactRequest.class
+rs/raf/rafnovosti/entities/Comment.class
+rs/raf/rafnovosti/resources/CommentResource.class
+rs/raf/rafnovosti/services/CommentService.class
+rs/raf/rafnovosti/repositories/comment/MySqlCommentRepository.class
+rs/raf/rafnovosti/repositories/comment/CommentRepository.class

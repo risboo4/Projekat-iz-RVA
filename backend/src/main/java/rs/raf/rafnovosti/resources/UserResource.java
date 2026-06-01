@@ -35,6 +35,20 @@ public class UserResource {
     }
 
     @GET
+    @Path("/{email}")
+    public Response getByEmail(@PathParam("email") String email,
+                               @HeaderParam(HttpHeaders.AUTHORIZATION) String authHeader) {
+        if (!isAdmin(authHeader)) {
+            return Response.status(403).entity(Map.of("error", "Nedovoljno prava")).build();
+        }
+        User user = userService.findByEmail(email);
+        if (user == null) {
+            return Response.status(404).entity(Map.of("error", "Korisnik nije pronađen")).build();
+        }
+        return Response.ok(user).build();
+    }
+
+    @GET
     public Response getAll(@QueryParam("page") @DefaultValue("1") int page,
                            @QueryParam("pageSize") @DefaultValue("10") int pageSize,
                            @HeaderParam(HttpHeaders.AUTHORIZATION) String authHeader) {
@@ -50,7 +64,7 @@ public class UserResource {
     }
 
     @POST
-    public Response create(User user,
+    public Response create(@Valid User user,
                            @HeaderParam(HttpHeaders.AUTHORIZATION) String authHeader) {
         if (!isAdmin(authHeader)) {
             return Response.status(403).entity(Map.of("error", "Nedovoljno prava")).build();
@@ -61,7 +75,7 @@ public class UserResource {
     @PUT
     @Path("/{email}")
     public Response update(@PathParam("email") String email,
-                           User user,
+                           @Valid User user,
                            @HeaderParam(HttpHeaders.AUTHORIZATION) String authHeader) {
         if (!isAdmin(authHeader)) {
             return Response.status(403).entity(Map.of("error", "Nedovoljno prava")).build();

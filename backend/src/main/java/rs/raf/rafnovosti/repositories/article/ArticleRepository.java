@@ -16,4 +16,5 @@ public interface ArticleRepository {
     Article insert(Article article);
     Article update(int id, Article article);
     void delete(int id);
+    List<Article> findLatest();
 }

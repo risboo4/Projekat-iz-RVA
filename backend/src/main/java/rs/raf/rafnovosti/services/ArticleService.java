@@ -1,9 +1,7 @@
 package rs.raf.rafnovosti.services;
 
 import rs.raf.rafnovosti.entities.Article;
-import rs.raf.rafnovosti.entities.Tag;
 import rs.raf.rafnovosti.repositories.article.ArticleRepository;
-import rs.raf.rafnovosti.repositories.tag.TagRepository;
 
 import javax.inject.Inject;
 import javax.ws.rs.WebApplicationException;
@@ -15,7 +13,6 @@ import java.util.Map;
 public class ArticleService {
 
     @Inject ArticleRepository articleRepository;
-    @Inject TagRepository tagRepository;
     @Inject UserService userService;
 
     public Map<String, Object> findAll(int page, int pageSize) {
@@ -51,21 +48,22 @@ public class ArticleService {
 
     public Article insert(Article article) {
         Article saved = articleRepository.insert(article);
-        saveTags(saved.getId(), article.getTags());
         return articleRepository.findById(saved.getId());
     }
 
     public Article update(int id, Article article, String token) {
         checkPermission(id, token);
         articleRepository.update(id, article);
-        tagRepository.deleteArticleTags(id);
-        saveTags(id, article.getTags());
         return articleRepository.findById(id);
     }
 
     public void delete(int id, String token) {
         checkPermission(id, token);
         articleRepository.delete(id);
+    }
+
+    public List<Article> findLatest() {
+        return articleRepository.findLatest();
     }
 
     private void checkPermission(int articleId, String token) {
@@ -78,17 +76,6 @@ public class ArticleService {
             throw new WebApplicationException(
                 Response.status(403).entity(Map.of("error", "Nemate dozvolu za ovu akciju")).build()
             );
-        }
-    }
-
-    private void saveTags(int articleId, List<String> tagNames) {
-        if (tagNames == null) return;
-        for (String name : tagNames) {
-            String trimmed = name.trim();
-            if (trimmed.isEmpty()) continue;
-            Tag tag = tagRepository.findByName(trimmed);
-            if (tag == null) tag = tagRepository.insert(trimmed);
-            tagRepository.insertArticleTag(articleId, tag.getId());
         }
     }
 }
