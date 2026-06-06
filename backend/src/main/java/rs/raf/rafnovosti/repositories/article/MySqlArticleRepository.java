@@ -158,7 +158,11 @@ public class MySqlArticleRepository extends MySqlAbstractRepository implements A
             ps = connection.prepareStatement(BASE_SELECT + "WHERE a.id = ?");
             ps.setInt(1, id);
             rs = ps.executeQuery();
-            if (rs.next()) return mapRow(rs);
+            if (rs.next()) {
+                Article article = mapRow(rs);
+                article.setTags(findTagsByArticleId(id));
+                return article;
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         } finally {
@@ -246,6 +250,10 @@ public class MySqlArticleRepository extends MySqlAbstractRepository implements A
                 ps.setInt(1, id);
                 ps.executeUpdate();
             }
+            try (PreparedStatement ps = connection.prepareStatement("DELETE FROM article_tags WHERE article_id = ?")) {
+                ps.setInt(1, id);
+                ps.executeUpdate();
+            }
             try (PreparedStatement ps = connection.prepareStatement("DELETE FROM articles WHERE id = ?")) {
                 ps.setInt(1, id);
                 ps.executeUpdate();
@@ -277,6 +285,121 @@ public class MySqlArticleRepository extends MySqlAbstractRepository implements A
             closeResultSet(rs); closeStatement(ps); closeConnection(connection);
         }
         return list;
+    }
+
+    @Override
+    public List<Article> findByTag(String tag, int page, int pageSize) {
+        List<Article> list = new ArrayList<>();
+        Connection connection = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        try {
+            connection = newConnection();
+            ps = connection.prepareStatement(
+                BASE_SELECT +
+                "JOIN article_tags at2 ON a.id = at2.article_id " +
+                "JOIN tags t ON at2.tag_id = t.id " +
+                "WHERE t.name = ? ORDER BY a.published_at DESC LIMIT ? OFFSET ?"
+            );
+            ps.setString(1, tag);
+            ps.setInt(2, pageSize);
+            ps.setInt(3, (page - 1) * pageSize);
+            rs = ps.executeQuery();
+            while (rs.next()) list.add(mapRow(rs));
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            closeResultSet(rs); closeStatement(ps); closeConnection(connection);
+        }
+        return list;
+    }
+
+    @Override
+    public int countByTag(String tag) {
+        Connection connection = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        try {
+            connection = newConnection();
+            ps = connection.prepareStatement(
+                "SELECT COUNT(*) FROM articles a " +
+                "JOIN article_tags at2 ON a.id = at2.article_id " +
+                "JOIN tags t ON at2.tag_id = t.id WHERE t.name = ?"
+            );
+            ps.setString(1, tag);
+            rs = ps.executeQuery();
+            if (rs.next()) return rs.getInt(1);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            closeResultSet(rs); closeStatement(ps); closeConnection(connection);
+        }
+        return 0;
+    }
+
+    @Override
+    public List<String> findTagsByArticleId(int articleId) {
+        List<String> tags = new ArrayList<>();
+        Connection connection = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        try {
+            connection = newConnection();
+            ps = connection.prepareStatement(
+                "SELECT t.name FROM tags t " +
+                "JOIN article_tags at2 ON t.id = at2.tag_id " +
+                "WHERE at2.article_id = ? ORDER BY t.name"
+            );
+            ps.setInt(1, articleId);
+            rs = ps.executeQuery();
+            while (rs.next()) tags.add(rs.getString("name"));
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            closeResultSet(rs); closeStatement(ps); closeConnection(connection);
+        }
+        return tags;
+    }
+
+    @Override
+    public void saveTags(int articleId, List<String> tags) {
+        Connection connection = null;
+        try {
+            connection = newConnection();
+            connection.setAutoCommit(false);
+
+            try (PreparedStatement ps = connection.prepareStatement(
+                    "DELETE FROM article_tags WHERE article_id = ?")) {
+                ps.setInt(1, articleId);
+                ps.executeUpdate();
+            }
+
+            for (String tagName : tags) {
+                String trimmed = tagName.trim();
+                if (trimmed.isEmpty()) continue;
+
+                try (PreparedStatement ps = connection.prepareStatement(
+                        "INSERT IGNORE INTO tags (name) VALUES (?)")) {
+                    ps.setString(1, trimmed);
+                    ps.executeUpdate();
+                }
+
+                try (PreparedStatement ps = connection.prepareStatement(
+                        "INSERT IGNORE INTO article_tags (article_id, tag_id) " +
+                        "SELECT ?, id FROM tags WHERE name = ?")) {
+                    ps.setInt(1, articleId);
+                    ps.setString(2, trimmed);
+                    ps.executeUpdate();
+                }
+            }
+
+            connection.commit();
+        } catch (SQLException e) {
+            try { if (connection != null) connection.rollback(); } catch (SQLException ex) { ex.printStackTrace(); }
+            e.printStackTrace();
+        } finally {
+            closeConnection(connection);
+        }
     }
 
     private Article mapRow(ResultSet rs) throws SQLException {

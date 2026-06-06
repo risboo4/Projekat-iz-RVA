@@ -36,8 +36,19 @@ CREATE TABLE comments (
     FOREIGN KEY (article_id) REFERENCES articles(id)
 );
 
--- Inicijalni admin korisnik, lozinka: admin123
--- sha2('admin123', 256) = 240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9
+CREATE TABLE tags (
+    id   INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) UNIQUE NOT NULL
+);
+
+CREATE TABLE article_tags (
+    article_id INT NOT NULL,
+    tag_id     INT NOT NULL,
+    PRIMARY KEY (article_id, tag_id),
+    FOREIGN KEY (article_id) REFERENCES articles(id),
+    FOREIGN KEY (tag_id)     REFERENCES tags(id)
+);
+
 INSERT INTO users (email, first_name, last_name, type, status, hashed_password)
 VALUES ('admin@raf.rs', 'Admin', 'Admin', 'ADMIN', 'ACTIVE',
         '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9');

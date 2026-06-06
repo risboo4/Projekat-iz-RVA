@@ -56,23 +56,21 @@ public class UserService {
     }
 
     public boolean isAuthorized(String token) {
-        JWTVerifier verifier = JWT.require(ALGORITHM).build();
-        DecodedJWT jwt = verifier.verify(token);
-        String email = jwt.getSubject();
-        User user = userRepository.findByEmail(email);
+        DecodedJWT jwt = decode(token);
+        User user = userRepository.findByEmail(jwt.getSubject());
         return user != null && "ACTIVE".equals(user.getStatus());
     }
 
     public String getRole(String token) {
-        JWTVerifier verifier = JWT.require(ALGORITHM).build();
-        DecodedJWT jwt = verifier.verify(token);
-        return jwt.getClaim("role").asString();
+        return decode(token).getClaim("role").asString();
     }
 
     public String getEmailFromToken(String token) {
-        JWTVerifier verifier = JWT.require(ALGORITHM).build();
-        DecodedJWT jwt = verifier.verify(token);
-        return jwt.getSubject();
+        return decode(token).getSubject();
+    }
+
+    private DecodedJWT decode(String token) {
+        return JWT.require(ALGORITHM).build().verify(token);
     }
 
     public User findByEmail(String email) {

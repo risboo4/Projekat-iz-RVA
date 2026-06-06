@@ -71,8 +71,12 @@ public class CategoryResource {
     }
 
     private boolean isAdmin(String authHeader) {
-        if (authHeader == null) return false;
-        String token = authHeader.replace("Bearer ", "");
-        return "ADMIN".equals(userService.getRole(token));
+        try {
+            if (authHeader == null) return false;
+            String token = authHeader.replace("Bearer ", "");
+            return "ADMIN".equals(userService.getRole(token));
+        } catch (Exception e) {
+            return false;
+        }
     }
 }

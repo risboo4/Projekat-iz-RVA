@@ -47,6 +47,14 @@ public class ArticleResource {
     }
 
     @GET
+    @Path("/bytag")
+    public Response getByTag(@QueryParam("tag") @DefaultValue("") String tag,
+                             @QueryParam("page") @DefaultValue("1") int page,
+                             @QueryParam("pageSize") @DefaultValue("10") int pageSize) {
+        return Response.ok(articleService.findByTag(tag, page, pageSize)).build();
+    }
+
+    @GET
     @Path("/{id}")
     public Response getById(@PathParam("id") int id) {
         return Response.ok(articleService.findById(id)).build();
@@ -63,8 +71,7 @@ public class ArticleResource {
     @POST
     public Response create(@Valid Article article,
                            @HeaderParam(HttpHeaders.AUTHORIZATION) String authHeader) {
-        String token = authHeader.replace("Bearer ", "");
-        article.setAuthorEmail(userService.getEmailFromToken(token));
+        article.setAuthorEmail(userService.getEmailFromToken(getToken(authHeader)));
         return Response.status(201).entity(articleService.insert(article)).build();
     }
 
@@ -81,16 +88,18 @@ public class ArticleResource {
     public Response update(@PathParam("id") int id,
                            @Valid Article article,
                            @HeaderParam(HttpHeaders.AUTHORIZATION) String authHeader) {
-        String token = authHeader.replace("Bearer ", "");
-        return Response.ok(articleService.update(id, article, token)).build();
+        return Response.ok(articleService.update(id, article, getToken(authHeader))).build();
     }
 
     @DELETE
     @Path("/{id}")
     public Response delete(@PathParam("id") int id,
                            @HeaderParam(HttpHeaders.AUTHORIZATION) String authHeader) {
-        String token = authHeader.replace("Bearer ", "");
-        articleService.delete(id, token);
+        articleService.delete(id, getToken(authHeader));
         return Response.noContent().build();
+    }
+
+    private String getToken(String authHeader) {
+        return authHeader.replace("Bearer ", "");
     }
 }

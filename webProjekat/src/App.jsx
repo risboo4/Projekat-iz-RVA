@@ -20,6 +20,7 @@ const PublicHomePage      = lazy(() => import('./pages/public/PublicHomePage.jsx
 const PublicArticlePage   = lazy(() => import('./pages/public/PublicArticlePage.jsx'));
 const PublicCategoryPage  = lazy(() => import('./pages/public/PublicCategoryPage.jsx'));
 const PublicSearchPage    = lazy(() => import('./pages/public/PublicSearchPage.jsx'));
+const PublicTagPage       = lazy(() => import('./pages/public/PublicTagPage.jsx'));
 
 const fallback = (
     <div className="d-flex justify-content-center align-items-center vh-100">
@@ -48,9 +49,10 @@ function App() {
 
                     <Route path="/" element={<PublicLayout />}>
                         <Route index element={<PublicHomePage />} />
-                        <Route path="article/:id"  element={<PublicArticlePage />} />
-                        <Route path="category/:id" element={<PublicCategoryPage />} />
-                        <Route path="search"       element={<PublicSearchPage />} />
+                        <Route path="article/:id"    element={<PublicArticlePage />} />
+                        <Route path="category/:id"  element={<PublicCategoryPage />} />
+                        <Route path="search"         element={<PublicSearchPage />} />
+                        <Route path="tag/:tagName"   element={<PublicTagPage />} />
                     </Route>
                 </Routes>
             </Suspense>

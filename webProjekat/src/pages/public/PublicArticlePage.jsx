@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { Spinner, Alert, Badge } from 'react-bootstrap';
 import _axios from '../../axiosInstance.js';
 import CommentSection from '../../components/public/CommentSection.jsx';
@@ -37,6 +37,17 @@ const PublicArticlePage = () => {
             <div style={{ whiteSpace: 'pre-wrap', lineHeight: '1.7' }} className="mb-4">
                 {article.content}
             </div>
+
+            {article.tags && article.tags.length > 0 && (
+                <div className="mb-4 d-flex flex-wrap gap-2 align-items-center">
+                    <span className="text-muted fw-semibold me-1">Tagovi:</span>
+                    {article.tags.map(tag => (
+                        <Link key={tag} to={`/tag/${encodeURIComponent(tag)}`} style={{ textDecoration: 'none' }}>
+                            <Badge bg="secondary" style={{ fontSize: '0.85rem' }}>#{tag}</Badge>
+                        </Link>
+                    ))}
+                </div>
+            )}
 
             <hr />
             <CommentSection articleId={parseInt(id)} />

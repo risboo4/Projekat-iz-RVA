@@ -4,6 +4,8 @@ import lombok.Data;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 public class Article {
@@ -27,4 +29,6 @@ public class Article {
     private String authorFirstName;
     private String authorLastName;
     private String categoryName;
+
+    private List<String> tags = new ArrayList<>();
 }

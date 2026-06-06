@@ -48,13 +48,22 @@ public class ArticleService {
 
     public Article insert(Article article) {
         Article saved = articleRepository.insert(article);
+        articleRepository.saveTags(saved.getId(), article.getTags());
         return articleRepository.findById(saved.getId());
     }
 
     public Article update(int id, Article article, String token) {
         checkPermission(id, token);
         articleRepository.update(id, article);
+        articleRepository.saveTags(id, article.getTags());
         return articleRepository.findById(id);
+    }
+
+    public Map<String, Object> findByTag(String tag, int page, int pageSize) {
+        Map<String, Object> result = new HashMap<>();
+        result.put("data", articleRepository.findByTag(tag, page, pageSize));
+        result.put("totalCount", articleRepository.countByTag(tag));
+        return result;
     }
 
     public void delete(int id, String token) {

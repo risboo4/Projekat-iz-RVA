@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Form, Button, Alert, Spinner } from 'react-bootstrap';
+import { Form, Button, Alert, Spinner, Badge } from 'react-bootstrap';
 import _axios from '../../axiosInstance.js';
 
 const CmsArticleFormPage = () => {
@@ -12,6 +12,8 @@ const CmsArticleFormPage = () => {
     const [content, setContent] = useState('');
     const [categoryId, setCategoryId] = useState('');
     const [categories, setCategories] = useState([]);
+    const [tags, setTags] = useState([]);
+    const [tagInput, setTagInput] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
@@ -28,11 +30,31 @@ const CmsArticleFormPage = () => {
                     setTitle(a.title);
                     setContent(a.content);
                     setCategoryId(String(a.categoryId));
+                    setTags(a.tags || []);
                 }
             })
             .catch(() => setError('Greška pri učitavanju podataka'))
             .finally(() => setLoading(false));
     }, [id]);
+
+    const addTag = () => {
+        const trimmed = tagInput.trim();
+        if (trimmed && !tags.includes(trimmed)) {
+            setTags([...tags, trimmed]);
+        }
+        setTagInput('');
+    };
+
+    const removeTag = (tag) => {
+        setTags(tags.filter(t => t !== tag));
+    };
+
+    const handleTagKeyDown = (e) => {
+        if (e.key === 'Enter' || e.key === ',') {
+            e.preventDefault();
+            addTag();
+        }
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -40,7 +62,7 @@ const CmsArticleFormPage = () => {
         setError('');
         setSubmitting(true);
         try {
-            const payload = { title, content, categoryId: parseInt(categoryId) };
+            const payload = { title, content, categoryId: parseInt(categoryId), tags };
             if (isEdit) {
                 await _axios.put(`/api/articles/${id}`, payload);
             } else {
@@ -98,6 +120,40 @@ const CmsArticleFormPage = () => {
                         placeholder="Unesite tekst vesti"
                         required
                     />
+                </Form.Group>
+
+                <Form.Group className="mb-3">
+                    <Form.Label>Tagovi</Form.Label>
+                    <div className="d-flex gap-2 mb-2">
+                        <Form.Control
+                            type="text"
+                            value={tagInput}
+                            onChange={(e) => setTagInput(e.target.value)}
+                            onKeyDown={handleTagKeyDown}
+                            placeholder="Unesite tag i pritisnite Enter"
+                        />
+                        <Button type="button" variant="outline-secondary" onClick={addTag}>
+                            Dodaj
+                        </Button>
+                    </div>
+                    <div className="d-flex flex-wrap gap-1">
+                        {tags.map(tag => (
+                            <Badge
+                                key={tag}
+                                bg="secondary"
+                                className="d-flex align-items-center gap-1"
+                                style={{ fontSize: '0.85rem', cursor: 'default' }}
+                            >
+                                {tag}
+                                <span
+                                    style={{ cursor: 'pointer', marginLeft: '4px' }}
+                                    onClick={() => removeTag(tag)}
+                                >
+                                    &times;
+                                </span>
+                            </Badge>
+                        ))}
+                    </div>
                 </Form.Group>
 
                 <div className="d-flex gap-2">
